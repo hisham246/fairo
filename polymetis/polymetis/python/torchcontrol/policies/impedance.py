@@ -148,7 +148,7 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         })
 
 
-        self.joint_pd = toco.modules.feedback.HybridJointSpacePD(Kq, Kqd, Kx, Kxd)
+        self.joint_pd = toco.modules.feedback.HybridJointSpacePD()
 
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))

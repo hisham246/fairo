@@ -140,13 +140,10 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             self.robot_model, ignore_gravity=ignore_gravity
         )
         # Register gains as parameters
-        self.param_dict = torch.nn.ParameterDict({
-            "Kq": torch.nn.Parameter(diagonalize_gain(to_tensor(Kq))),
-            "Kqd": torch.nn.Parameter(diagonalize_gain(to_tensor(Kqd))),
-            "Kx": torch.nn.Parameter(diagonalize_gain(to_tensor(Kx))),
-            "Kxd": torch.nn.Parameter(diagonalize_gain(to_tensor(Kxd))),
-        })
-
+        self.register_parameter("Kq", torch.nn.Parameter(diagonalize_gain(to_tensor(Kq))))
+        self.register_parameter("Kqd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kqd))))
+        self.register_parameter("Kx", torch.nn.Parameter(diagonalize_gain(to_tensor(Kx))))
+        self.register_parameter("Kxd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kxd))))
 
         self.joint_pd = toco.modules.feedback.HybridJointSpacePD()
 
@@ -173,10 +170,10 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             self.joint_pos_desired,
             self.joint_vel_desired,
             self.robot_model.compute_jacobian(joint_pos_current),
-            self.param_dict["Kq"],
-            self.param_dict["Kqd"],
-            self.param_dict["Kx"],
-            self.param_dict["Kxd"],
+            self._param_dict["Kq"],
+            self._param_dict["Kqd"],
+            self._param_dict["Kx"],
+            self._param_dict["Kxd"],
         )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)

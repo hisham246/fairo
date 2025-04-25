@@ -73,42 +73,6 @@ class JointImpedanceControl(toco.PolicyModule):
         return {"joint_torques": torque_out}
 
 
-# class HybridJointImpedanceControl(toco.PolicyModule):
-#     """
-#     Impedance control in joint space, but with both fixed joint gains and adaptive operational space gains.
-#     """
-
-#     def __init__(
-#         self,
-#         joint_pos_current,
-#         Kq,
-#         Kqd,
-#         Kx,
-#         Kxd,
-#         robot_model: torch.nn.Module,
-#         ignore_gravity=True,
-#     ):
-#         """
-#         Args:
-#             joint_pos_current: Current joint positions
-#             Kp: P gains in Cartesian space
-#             Kd: D gains in Cartesian space
-#             robot_model: A robot model from torchcontrol.models
-#             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
-#         """
-#         super().__init__()
-
-#         # Initialize modules
-#         self.robot_model = robot_model
-#         self.invdyn = toco.modules.feedforward.InverseDynamics(
-#             self.robot_model, ignore_gravity=ignore_gravity
-#         )
-#         self.joint_pd = toco.modules.feedback.HybridJointSpacePD(Kq, Kqd, Kx, Kxd)
-
-#         # Reference pose
-#         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
-#         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
-
 class HybridJointImpedanceControl(toco.PolicyModule):
     """
     Impedance control in joint space, but with both fixed joint gains and adaptive operational space gains.
@@ -139,17 +103,53 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        # Register gains as parameters
-        self.register_parameter("Kq", torch.nn.Parameter(diagonalize_gain(to_tensor(Kq))))
-        self.register_parameter("Kqd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kqd))))
-        self.register_parameter("Kx", torch.nn.Parameter(diagonalize_gain(to_tensor(Kx))))
-        self.register_parameter("Kxd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kxd))))
-
-        self.joint_pd = toco.modules.feedback.HybridJointSpacePD()
+        self.joint_pd = toco.modules.feedback.HybridJointSpacePD(Kq, Kqd, Kx, Kxd)
 
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
+
+# class HybridJointImpedanceControl(toco.PolicyModule):
+#     """
+#     Impedance control in joint space, but with both fixed joint gains and adaptive operational space gains.
+#     """
+
+#     def __init__(
+#         self,
+#         joint_pos_current,
+#         Kq,
+#         Kqd,
+#         Kx,
+#         Kxd,
+#         robot_model: torch.nn.Module,
+#         ignore_gravity=True,
+#     ):
+#         """
+#         Args:
+#             joint_pos_current: Current joint positions
+#             Kp: P gains in Cartesian space
+#             Kd: D gains in Cartesian space
+#             robot_model: A robot model from torchcontrol.models
+#             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
+#         """
+#         super().__init__()
+
+#         # Initialize modules
+#         self.robot_model = robot_model
+#         self.invdyn = toco.modules.feedforward.InverseDynamics(
+#             self.robot_model, ignore_gravity=ignore_gravity
+#         )
+#         # Register gains as parameters
+#         self.register_parameter("Kq", torch.nn.Parameter(diagonalize_gain(to_tensor(Kq))))
+#         self.register_parameter("Kqd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kqd))))
+#         self.register_parameter("Kx", torch.nn.Parameter(diagonalize_gain(to_tensor(Kx))))
+#         self.register_parameter("Kxd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kxd))))
+
+#         self.joint_pd = toco.modules.feedback.HybridJointSpacePD()
+
+#         # Reference pose
+#         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
+#         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """

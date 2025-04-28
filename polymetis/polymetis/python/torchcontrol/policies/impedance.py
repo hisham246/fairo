@@ -10,6 +10,9 @@ import torchcontrol as toco
 from torchcontrol.transform import Transformation as T
 from torchcontrol.transform import Rotation as R
 from torchcontrol.utils import to_tensor, diagonalize_gain
+import os
+import csv
+import time
 
 
 class JointImpedanceControl(toco.PolicyModule):
@@ -86,6 +89,7 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         Kxd,
         robot_model: torch.nn.Module,
         ignore_gravity=True,
+        log_file_path="/home/robohub/desired_joint_states.csv"
     ):
         """
         Args:
@@ -107,6 +111,18 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
+
+        # Logging
+        self.log_file_path = log_file_path
+        if not os.path.exists(self.log_file_path):
+            with open(self.log_file_path, mode='w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(
+                    ["timestamp"] + 
+                    [f"q{i}_des" for i in range(len(self.joint_pos_desired))] +
+                    [f"dq{i}_des" for i in range(len(self.joint_pos_desired))]
+                )
+
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
@@ -132,6 +148,15 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
         )  # coriolis
         torque_out = torque_feedback + torque_feedforward
+
+        # Logging desired joint pos/vel
+        with open(self.log_file_path, mode='a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [time.time()] + 
+                list(self.joint_pos_desired.detach().cpu().numpy()) +
+                list(self.joint_vel_desired.detach().cpu().numpy())
+            )
 
         return {"joint_torques": torque_out}
 

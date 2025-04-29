@@ -221,6 +221,21 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
   robot_state_buffer_.append(robot_state_copy);
 
+  // -------------------ADDED------------------//
+  if (custom_controller_context_.status == RUNNING) {
+    at::Tensor q_des = controller->module.attr("get_joint_pos_desired")().toTensor();
+    at::Tensor dq_des = controller->module.attr("get_joint_vel_desired")().toTensor();
+  
+    TORCH_CHECK(q_des.sizes()[0] == num_dofs_, "q_des size mismatch");
+    TORCH_CHECK(dq_des.sizes()[0] == num_dofs_, "dq_des size mismatch");
+  
+    for (int i = 0; i < num_dofs_; i++) {
+      robot_state_copy.add_joint_positions_desired(q_des[i].item<float>());
+      robot_state_copy.add_joint_velocities_desired(dq_des[i].item<float>());
+    }
+  }
+  // -------------------------------------------//
+
   // Update timestep & check termination
   if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.timestep++;

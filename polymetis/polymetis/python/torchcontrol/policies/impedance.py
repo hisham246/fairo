@@ -88,9 +88,7 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         Kx,
         Kxd,
         robot_model: torch.nn.Module,
-        ignore_gravity=True,
-        log_file_path="/home/robohub/desired_joint_states.csv"
-    ):
+        ignore_gravity=True):
         """
         Args:
             joint_pos_current: Current joint positions

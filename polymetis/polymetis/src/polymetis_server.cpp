@@ -5,6 +5,7 @@
 #include <string>
 
 #include "polymetis/polymetis_server.hpp"
+#include <torch/script.h>
 
 PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
   controller_model_buffer_.reserve(MAX_MODEL_BYTES);
@@ -218,10 +219,8 @@ Status PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     robot_state_copy.add_joint_torques_computed(
         torque_command->joint_torques(i));
   }
-  robot_state_buffer_.append(robot_state_copy);
 
   // -------------------ADDED------------------//
-
   // Access exported desired joint states
   at::Tensor q_des = controller->module.attr("get_joint_pos_desired")().toTensor();
   at::Tensor dq_des = controller->module.attr("get_joint_vel_desired")().toTensor();
@@ -233,20 +232,7 @@ Status PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
   // -------------------------------------------//
 
-  // // -------------------ADDED------------------//
-  // if (custom_controller_context_.status == RUNNING) {
-  //   at::Tensor q_des = controller->module.attr("get_joint_pos_desired")().toTensor();
-  //   at::Tensor dq_des = controller->module.attr("get_joint_vel_desired")().toTensor();
-  
-  //   TORCH_CHECK(q_des.sizes()[0] == num_dofs_, "q_des size mismatch");
-  //   TORCH_CHECK(dq_des.sizes()[0] == num_dofs_, "dq_des size mismatch");
-  
-  //   for (int i = 0; i < num_dofs_; i++) {
-  //     robot_state_copy.add_joint_positions_desired(q_des[i].item<float>());
-  //     robot_state_copy.add_joint_velocities_desired(dq_des[i].item<float>());
-  //   }
-  // }
-  // // -------------------------------------------//
+  robot_state_buffer_.append(robot_state_copy);
 
   // Update timestep & check termination
   if (custom_controller_context_.status == RUNNING) {

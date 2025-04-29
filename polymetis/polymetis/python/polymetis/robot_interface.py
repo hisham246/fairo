@@ -668,6 +668,8 @@ class RobotInterface(BaseRobotInterface):
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
+        q_des = torch_policy.joint_pos_desired
+        print("q_des:", q_des)
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 

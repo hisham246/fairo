@@ -111,7 +111,6 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
 
 
-
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
         Args:
@@ -139,13 +138,13 @@ class HybridJointImpedanceControl(toco.PolicyModule):
 
         return {"joint_torques": torque_out}
     
-    @torch.jit.export
-    def get_joint_pos_desired(self) -> torch.Tensor:
-        return self.joint_pos_desired
+    # @torch.jit.export
+    # def get_joint_pos_desired(self) -> torch.Tensor:
+    #     return self.joint_pos_desired
 
-    @torch.jit.export
-    def get_joint_vel_desired(self) -> torch.Tensor:
-        return self.joint_vel_desired
+    # @torch.jit.export
+    # def get_joint_vel_desired(self) -> torch.Tensor:
+    #     return self.joint_vel_desired
 
 # class HybridJointImpedanceControl(toco.PolicyModule):
 #     """

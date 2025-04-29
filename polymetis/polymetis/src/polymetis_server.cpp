@@ -142,8 +142,7 @@ int PolymetisControllerServerImpl::setThreadPriority(int prio) {
   return orig_param.sched_priority;
 }
 
-Status
-PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
+Status PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
                                              const RobotState *robot_state,
                                              TorqueCommand *torque_command) {
   // Check if last update is stale
@@ -220,6 +219,19 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
         torque_command->joint_torques(i));
   }
   robot_state_buffer_.append(robot_state_copy);
+
+  // -------------------ADDED------------------//
+
+  // Access exported desired joint states
+  at::Tensor q_des = controller->module.attr("get_joint_pos_desired")().toTensor();
+  at::Tensor dq_des = controller->module.attr("get_joint_vel_desired")().toTensor();
+
+  // Fill RobotState with desired joint pos/vel
+  for (int i = 0; i < num_dofs_; ++i) {
+    robot_state_copy.add_joint_positions_desired(q_des[i].item<float>());
+    robot_state_copy.add_joint_velocities_desired(dq_des[i].item<float>());
+  }
+  // -------------------------------------------//
 
   // // -------------------ADDED------------------//
   // if (custom_controller_context_.status == RUNNING) {

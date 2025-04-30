@@ -5,6 +5,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(polymetis)
 
+#ADDED
+set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
+find_package(Torch REQUIRED)
+
 set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -119,6 +123,7 @@ target_link_libraries(polymetis_server
     generated_grpc_protos
     yaml-cpp
     spdlog::spdlog
+    ${TORCH_LIBRARIES} # ADDED
 )
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)

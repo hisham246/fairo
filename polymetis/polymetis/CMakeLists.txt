@@ -133,10 +133,12 @@ target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
 add_executable(run_server "src/run_server.cpp")
 target_link_libraries(run_server 
     polymetis_server
+    # ADDED
     ${CMAKE_DL_LIBS}
-    "${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libc10.so"
-    "${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libtorch.so"
-    "${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so"
+    ${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libc10.so
+    ${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libtorch.so
+    ${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so
+    ${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libtorch_python.so
     )
 
 # Add test client

@@ -7,6 +7,7 @@
 
 #include <map>
 #include <vector>
+#include <torch/script.h> // ADDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,7 +17,13 @@ extern "C" {
 #define WARM_UP_ITERS 5
 
 struct TorchTensor;       // torch::Tensor
-struct TorchScriptModule; // torch::jit::script::Module
+//
+// struct TorchScriptModule; // torch::jit::script::Module
+namespace torch {
+  namespace jit {
+  class Module;
+  }
+  }
 struct TorchInput;        // std::vector<torch::jit::IValue>
 struct StateDict;         // c10::Dict<std::string, struct TorchTensor>
 
@@ -66,6 +73,10 @@ public:
 
   bool is_terminated();
   void reset();
+  
+  // ADDED
+  at::Tensor getDesiredJointPosition();
+  at::Tensor getDesiredJointVelocity();
 };
 
 #ifdef __cplusplus

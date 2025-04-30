@@ -222,8 +222,8 @@ Status PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
 
   // -------------------ADDED------------------//
   // Access exported desired joint states
-  at::Tensor q_des = controller->module.attr("get_joint_pos_desired")().toTensor();
-  at::Tensor dq_des = controller->module.attr("get_joint_vel_desired")().toTensor();
+  at::Tensor q_des = controller->getDesiredJointPosition();
+  at::Tensor dq_des = controller->getDesiredJointVelocity();
 
   // Fill RobotState with desired joint pos/vel
   for (int i = 0; i < num_dofs_; ++i) {

@@ -192,6 +192,15 @@ bool TorchScriptedController::param_dict_load(char *data, size_t size) {
 
 void TorchScriptedController::param_dict_update_module() {
   module_->data.get_method("update")(param_dict_input_->data);
+
+  // ADDED
+  at::Tensor getDesiredJointPosition() {
+    return module_->attr("get_joint_pos_desired")().toTensor();
+  }
+  
+  at::Tensor getDesiredJointVelocity() {
+    return module_->attr("get_joint_vel_desired")().toTensor();
+  }
 }
 
 } /* extern "C" */

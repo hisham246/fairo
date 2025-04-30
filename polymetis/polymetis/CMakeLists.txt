@@ -107,6 +107,9 @@ include_directories(
     ${pinocchio_INCLUDE_DIRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
+
+    # Explicit paths to torch C++ headers
+    "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/include"
 )
 
 # Add server

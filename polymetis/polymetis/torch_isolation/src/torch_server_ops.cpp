@@ -196,11 +196,11 @@ void TorchScriptedController::param_dict_update_module() {
 
 // ADDED
 at::Tensor TorchScriptedController::getDesiredJointPosition() {
-  return module_->data.attr("get_joint_pos_desired")().toTensor();
+  return module_->data.get_method("get_joint_pos_desired")({}).toTensor();
 }
 
 at::Tensor TorchScriptedController::getDesiredJointVelocity() {
-  return module_->data.attr("get_joint_vel_desired")().toTensor();
+  return module_->data.get_method("get_joint_vel_desired")({}).toTensor();
 }
 
 } /* extern "C" */

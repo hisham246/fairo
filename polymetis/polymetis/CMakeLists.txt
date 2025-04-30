@@ -137,8 +137,8 @@ target_link_libraries(run_server
     ${CMAKE_DL_LIBS}
     /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libc10.so
     /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch.so
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_python.so
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_python.so
     )
 
 # Add test client

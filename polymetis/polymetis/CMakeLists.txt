@@ -5,10 +5,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(polymetis)
 
-#ADDED
-set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
-find_package(Torch REQUIRED)
-
 set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -38,6 +34,9 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
+#ADDED
+set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
+find_package(Torch REQUIRED)
 
 # Find protoc
 set(_PROTOBUF_PROTOC $ENV{CONDA_PREFIX}/bin/protoc)

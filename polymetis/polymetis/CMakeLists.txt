@@ -8,6 +8,10 @@ project(polymetis)
 set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+# ADDED
+set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch")
+find_package(Torch REQUIRED)
+
 add_library(protobuf::libprotobuf UNKNOWN IMPORTED)
 set_target_properties(protobuf::libprotobuf PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/google/protobuf/")
@@ -119,13 +123,15 @@ target_link_libraries(polymetis_server
     generated_grpc_protos
     yaml-cpp
     spdlog::spdlog
+    # ADDED
+    ${TORCH_LIBRARIES}
 )
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
 
 add_executable(run_server "src/run_server.cpp")
-target_link_libraries(run_server polymetis_server)
+target_link_libraries(run_server polymetis_server ${TORCH_LIBRARIES})
 
 # Add test client
 add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
@@ -226,7 +232,7 @@ if(BUILD_TESTS)
 
   include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
   add_executable(test_server ./tests/cpp/test_server.cpp)
-  target_link_libraries(test_server polymetis_server gtest)
+  target_link_libraries(test_server polymetis_server gtest ${TORCH_LIBRARIES})
 endif()
 
 if(BUILD_DOCS)

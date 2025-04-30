@@ -35,8 +35,8 @@ find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 # #ADDED
-set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
-find_package(Torch REQUIRED)
+# set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
+# find_package(Torch REQUIRED)
 
 # Find protoc
 set(_PROTOBUF_PROTOC $ENV{CONDA_PREFIX}/bin/protoc)
@@ -122,14 +122,20 @@ target_link_libraries(polymetis_server
     generated_grpc_protos
     yaml-cpp
     spdlog::spdlog
-    ${TORCH_LIBRARIES} # ADDED
 )
+
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
 
 add_executable(run_server "src/run_server.cpp")
-target_link_libraries(run_server polymetis_server)
+target_link_libraries(run_server 
+    polymetis_server
+    ${CMAKE_DL_LIBS}
+    "${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libc10.so"
+    "${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libtorch.so"
+    "${CONDA_PREFIX}/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so"
+    )
 
 # Add test client
 add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"

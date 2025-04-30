@@ -8,14 +8,14 @@ project(polymetis)
 set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-add_library(protobuf::libprotobuf UNKNOWN IMPORTED)
-set_target_properties(protobuf::libprotobuf PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/google/protobuf/")
-set_target_properties(protobuf::libprotobuf PROPERTIES
-  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libprotobuf.so")
-set_property(TARGET protobuf::libprotobuf APPEND PROPERTY
-  INTERFACE_COMPILE_FEATURES cxx_std_11
-)
+# add_library(protobuf::libprotobuf UNKNOWN IMPORTED)
+# set_target_properties(protobuf::libprotobuf PROPERTIES
+#   INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/google/protobuf/")
+# set_target_properties(protobuf::libprotobuf PROPERTIES
+#   IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libprotobuf.so")
+# set_property(TARGET protobuf::libprotobuf APPEND PROPERTY
+#   INTERFACE_COMPILE_FEATURES cxx_std_11
+# )
 
 add_subdirectory("torch_isolation/")
 
@@ -34,9 +34,11 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
-# #ADDED
-# set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
-# find_package(Torch REQUIRED)
+# ADDED
+set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
+find_package(Torch REQUIRED)
+find_package(Protobuf REQUIRED)
+###
 
 # Find protoc
 set(_PROTOBUF_PROTOC $ENV{CONDA_PREFIX}/bin/protoc)
@@ -99,7 +101,8 @@ add_library(
 target_link_libraries(generated_grpc_protos
     ${_REFLECTION}
     ${_GRPC_GRPCPP}
-    ${_PROTOBUF_LIBPROTOBUF}
+    # ${_PROTOBUF_LIBPROTOBUF}
+    protobuf::libprotobuf
 )
 
 include_directories(

@@ -688,7 +688,7 @@ class RobotInterface(BaseRobotInterface):
         self,
         position: torch.Tensor = None,
         orientation: torch.Tensor = None,
-    ) -> int:
+    ) -> Tuple[int, torch.Tensor]:
         """Update the desired EE pose used by the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """

@@ -704,7 +704,7 @@ class RobotInterface(BaseRobotInterface):
             log.warning(
                 "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
             )
-            return -1
+            return -1, joint_pos_current
 
         # return self.update_desired_joint_positions(joint_pos_desired)
         return self.update_desired_joint_positions(joint_pos_desired), joint_pos_desired

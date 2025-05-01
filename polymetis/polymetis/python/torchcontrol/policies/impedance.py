@@ -10,9 +10,6 @@ import torchcontrol as toco
 from torchcontrol.transform import Transformation as T
 from torchcontrol.transform import Rotation as R
 from torchcontrol.utils import to_tensor, diagonalize_gain
-import os
-import csv
-import time
 
 
 class JointImpedanceControl(toco.PolicyModule):
@@ -138,13 +135,13 @@ class HybridJointImpedanceControl(toco.PolicyModule):
 
         return {"joint_torques": torque_out}
     
-    # @torch.jit.export
-    # def get_joint_pos_desired(self) -> torch.Tensor:
-    #     return self.joint_pos_desired
+    @torch.jit.export
+    def get_joint_pos_desired(self) -> torch.Tensor:
+        return self.joint_pos_desired
 
-    # @torch.jit.export
-    # def get_joint_vel_desired(self) -> torch.Tensor:
-    #     return self.joint_vel_desired
+    @torch.jit.export
+    def get_joint_vel_desired(self) -> torch.Tensor:
+        return self.joint_vel_desired
 
 # class HybridJointImpedanceControl(toco.PolicyModule):
 #     """

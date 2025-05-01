@@ -141,12 +141,12 @@ std::vector<float> TorchScriptedController::forward(TorchRobotState &input) {
   torch::jit::IValue key = torch::jit::IValue("joint_torques");
   torch::Tensor desired_torque = controller_state_dict.at(key).toTensor();
 
-  // --------ADDED--------
-  torch::jit::IValue key_pos = torch::jit::IValue("joint_pos_desired");
-  torch::jit::IValue key_vel = torch::jit::IValue("joint_vel_desired");
-  cached_q_des_ = controller_state_dict.at(key_pos).toTensor();
-  cached_dq_des_ = controller_state_dict.at(key_vel).toTensor();
-  // ---------------------
+  // // --------ADDED--------
+  // torch::jit::IValue key_pos = torch::jit::IValue("joint_pos_desired");
+  // torch::jit::IValue key_vel = torch::jit::IValue("joint_vel_desired");
+  // cached_q_des_ = controller_state_dict.at(key_pos).toTensor();
+  // cached_dq_des_ = controller_state_dict.at(key_vel).toTensor();
+  // // ---------------------
 
   std::vector<float> result;
   for (int i = 0; i < input.num_dofs_; i++) {
@@ -209,13 +209,13 @@ void TorchScriptedController::param_dict_update_module() {
 // at::Tensor TorchScriptedController::getDesiredJointVelocity() {
 //   return module_->data.get_method("get_joint_vel_desired")({}).toTensor();
 // }
-at::Tensor TorchScriptedController::getDesiredJointPosition() {
-  return cached_q_des_;
-}
+// at::Tensor TorchScriptedController::getDesiredJointPosition() {
+//   return cached_q_des_;
+// }
 
-at::Tensor TorchScriptedController::getDesiredJointVelocity() {
-  return cached_dq_des_;
-}
+// at::Tensor TorchScriptedController::getDesiredJointVelocity() {
+//   return cached_dq_des_;
+// }
 // -------------------------------------------//
 
 } /* extern "C" */

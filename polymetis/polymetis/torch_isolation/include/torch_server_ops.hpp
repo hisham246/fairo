@@ -7,7 +7,7 @@
 
 #include <map>
 #include <vector>
-#include <torch/script.h> // ADDED
+// #include <torch/script.h> // ADDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,15 +78,15 @@ public:
   bool is_terminated();
   void reset();
 
-  // ---------- ADDED ----------
-  torch::Tensor cached_q_des_;
-  torch::Tensor cached_dq_des_;
-  // ---------------------------
+  // // ---------- ADDED ----------
+  // torch::Tensor cached_q_des_;
+  // torch::Tensor cached_dq_des_;
+  // // ---------------------------
   
-  // -------------ADDED-------------------//
-  at::Tensor getDesiredJointPosition();
-  at::Tensor getDesiredJointVelocity();
-  // ------------------------------------//
+  // // -------------ADDED-------------------//
+  // at::Tensor getDesiredJointPosition();
+  // at::Tensor getDesiredJointVelocity();
+  // // ------------------------------------//
 };
 
 #ifdef __cplusplus

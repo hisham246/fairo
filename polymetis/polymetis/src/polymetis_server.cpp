@@ -5,7 +5,7 @@
 #include <string>
 
 #include "polymetis/polymetis_server.hpp"
-#include <torch/script.h> // ADDED
+// #include <torch/script.h> // ADDED
 
 PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
   controller_model_buffer_.reserve(MAX_MODEL_BYTES);
@@ -220,17 +220,17 @@ Status PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
         torque_command->joint_torques(i));
   }
 
-  // -------------------ADDED------------------//
-  // Access desired joint states
-  at::Tensor q_des = controller->getDesiredJointPosition();
-  at::Tensor dq_des = controller->getDesiredJointVelocity();
+  // // -------------------ADDED------------------//
+  // // Access desired joint states
+  // at::Tensor q_des = controller->getDesiredJointPosition();
+  // at::Tensor dq_des = controller->getDesiredJointVelocity();
 
-  // Fill RobotState with desired joint pos/vel
-  for (int i = 0; i < num_dofs_; ++i) {
-    robot_state_copy.add_joint_positions_desired(q_des[i].item<float>());
-    robot_state_copy.add_joint_velocities_desired(dq_des[i].item<float>());
-  }
-  // -------------------------------------------//
+  // // Fill RobotState with desired joint pos/vel
+  // for (int i = 0; i < num_dofs_; ++i) {
+  //   robot_state_copy.add_joint_positions_desired(q_des[i].item<float>());
+  //   robot_state_copy.add_joint_velocities_desired(dq_des[i].item<float>());
+  // }
+  // // -------------------------------------------//
 
   robot_state_buffer_.append(robot_state_copy);
 

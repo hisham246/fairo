@@ -700,6 +700,8 @@ class RobotInterface(BaseRobotInterface):
         joint_pos_desired, success = self.solve_inverse_kinematics(
             ee_pos_desired, ee_quat_desired, joint_pos_current
         )
+
+        print(f"joint_pos_desired: {joint_pos_desired}")
         if not success:
             log.warning(
                 "Unable to find valid joint target. Skipping update_desired_ee_pose command..."

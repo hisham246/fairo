@@ -5,7 +5,7 @@
 #include <string>
 
 #include "polymetis/polymetis_server.hpp"
-#include <torch/script.h>
+// #include <torch/script.h>
 
 PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
   controller_model_buffer_.reserve(MAX_MODEL_BYTES);

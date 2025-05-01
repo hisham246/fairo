@@ -34,12 +34,6 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
-# # ADDED
-# set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/share/cmake/Torch")
-# find_package(Torch REQUIRED)
-# find_package(Protobuf REQUIRED)
-# ###
-
 # Find protoc
 set(_PROTOBUF_PROTOC $ENV{CONDA_PREFIX}/bin/protoc)
 
@@ -114,7 +108,7 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
 
     # Explicit paths to torch C++ headers
-    "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/include"
+    # "$ENV{CONDA_PREFIX}/lib/python3.8/site-packages/torch/include"
 )
 
 # Add server
@@ -134,13 +128,13 @@ add_executable(run_server "src/run_server.cpp")
 target_link_libraries(run_server 
     polymetis_server
     # ADDED
-    ${CMAKE_DL_LIBS}
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libc10.so
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch.so
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_python.so
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_global_deps.so
-    /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libshm.so
+    # ${CMAKE_DL_LIBS}
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libc10.so
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch.so
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_python.so
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_global_deps.so
+    # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libshm.so
     )
 
 # Add test client
@@ -245,12 +239,12 @@ if(BUILD_TESTS)
   target_link_libraries(test_server 
       polymetis_server 
       gtest
-      /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libc10.so
-      /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch.so
-      /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so
-      /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_python.so
-      /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_global_deps.so
-      /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libshm.so)
+      # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libc10.so
+      # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch.so
+      # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so
+      # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_python.so
+      # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_global_deps.so
+      # /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libshm.so)
 endif()
 
 if(BUILD_DOCS)

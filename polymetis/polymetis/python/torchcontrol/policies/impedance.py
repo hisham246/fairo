@@ -133,15 +133,17 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         )  # coriolis
         torque_out = torque_feedback + torque_feedforward
 
-        return {"joint_torques": torque_out}
+        return {"joint_torques": torque_out, 
+                "joint_pos_desired": self.joint_pos_desired,
+                "joint_vel_desired": self.joint_vel_desired}    
     
-    @torch.jit.export
-    def get_joint_pos_desired(self) -> torch.Tensor:
-        return self.joint_pos_desired
+    # @torch.jit.export
+    # def get_joint_pos_desired(self) -> torch.Tensor:
+    #     return self.joint_pos_desired
 
-    @torch.jit.export
-    def get_joint_vel_desired(self) -> torch.Tensor:
-        return self.joint_vel_desired
+    # @torch.jit.export
+    # def get_joint_vel_desired(self) -> torch.Tensor:
+    #     return self.joint_vel_desired
 
 # class HybridJointImpedanceControl(toco.PolicyModule):
 #     """

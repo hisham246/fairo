@@ -18,15 +18,15 @@ extern "C" {
 
 struct TorchTensor;       // torch::Tensor
 
-// struct TorchScriptModule; // torch::jit::script::Module
+struct TorchScriptModule; // torch::jit::script::Module
 
-// ----------ADDED------------------//
-namespace torch {
-  namespace jit {
-  class Module;
-  }
-  }
-// ---------------------------------//
+// // ----------ADDED------------------//
+// namespace torch {
+//   namespace jit {
+//   class Module;
+//   }
+//   }
+// // ---------------------------------//
 
 struct TorchInput;        // std::vector<torch::jit::IValue>
 struct StateDict;         // c10::Dict<std::string, struct TorchTensor>
@@ -77,6 +77,11 @@ public:
 
   bool is_terminated();
   void reset();
+
+  // ---------- ADDED ----------
+  torch::Tensor cached_q_des_;
+  torch::Tensor cached_dq_des_;
+  // ---------------------------
   
   // -------------ADDED-------------------//
   at::Tensor getDesiredJointPosition();

@@ -221,7 +221,7 @@ Status PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   // -------------------ADDED------------------//
-  // Access exported desired joint states
+  // Access desired joint states
   at::Tensor q_des = controller->getDesiredJointPosition();
   at::Tensor dq_des = controller->getDesiredJointVelocity();
 

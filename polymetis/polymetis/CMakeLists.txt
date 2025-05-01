@@ -240,6 +240,7 @@ if(BUILD_TESTS)
   target_link_libraries(test_server 
       polymetis_server 
       gtest
+      # ADDED
       /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libc10.so
       /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch.so
       /home/robohub/.conda/envs/polymetis-local/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so

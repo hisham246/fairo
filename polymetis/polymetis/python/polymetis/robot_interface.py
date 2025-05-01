@@ -705,9 +705,11 @@ class RobotInterface(BaseRobotInterface):
                 "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
             )
             return -1, joint_pos_current
+        
+        update = self.update_desired_joint_positions(joint_pos_desired)
 
         # return self.update_desired_joint_positions(joint_pos_desired)
-        return self.update_desired_joint_positions(joint_pos_desired), joint_pos_desired
+        return update, joint_pos_desired
 
     def start_joint_velocity_control(
         self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs

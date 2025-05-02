@@ -706,7 +706,7 @@ class RobotInterface(BaseRobotInterface):
             ee_pos_desired, ee_quat_desired, joint_pos_current
         )
         
-        return torch.Tensor(joint_pos_desired), success
+        return joint_pos_desired, success
     
     def update_desired_ee_pose(
         self,

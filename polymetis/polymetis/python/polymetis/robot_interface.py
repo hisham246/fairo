@@ -684,13 +684,18 @@ class RobotInterface(BaseRobotInterface):
 
         return update_idx
 
-    def update_desired_ee_pose(
+    def get_joint_pos_desired(
         self,
         position: torch.Tensor = None,
         orientation: torch.Tensor = None,
-    ) -> Tuple[int, torch.Tensor]:
-        """Update the desired EE pose used by the Cartesian position control mode.
-        Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
+    ) -> Tuple[torch.Tensor, bool]:
+        """
+        Computes the joint position that would achieve the desired EE pose.
+        If no position/orientation is provided, uses the current EE pose.
+        
+        Returns:
+            - joint_pos_desired: torch.Tensor
+            - success: bool indicating whether IK was successful
         """
         joint_pos_current = self.get_joint_positions()
         ee_pos_current, ee_quat_current = self.get_ee_pose()
@@ -700,18 +705,27 @@ class RobotInterface(BaseRobotInterface):
         joint_pos_desired, success = self.solve_inverse_kinematics(
             ee_pos_desired, ee_quat_desired, joint_pos_current
         )
+        
+        return joint_pos_desired, success
+    
+    def update_desired_ee_pose(
+        self,
+        position: torch.Tensor = None,
+        orientation: torch.Tensor = None,
+    ) -> int:
+        """Update the desired EE pose using the Cartesian position control mode.
+        Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
+        """
+        joint_pos_desired, success = self.get_joint_pos_desired(position, orientation)
 
-        print(f"joint_pos_desired: {joint_pos_desired}")
         if not success:
             log.warning(
                 "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
             )
-            return -1, joint_pos_current
-        
-        update = self.update_desired_joint_positions(joint_pos_desired)
+            return -1
 
-        # return self.update_desired_joint_positions(joint_pos_desired)
-        return update, joint_pos_desired
+        return self.update_desired_joint_positions(joint_pos_desired)
+
 
     def start_joint_velocity_control(
         self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs

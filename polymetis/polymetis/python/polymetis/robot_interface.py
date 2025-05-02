@@ -71,7 +71,7 @@ class BaseRobotInterface:
         self,
         ip_address: str = "localhost",
         port: int = 50051,
-        enforce_version=True,
+        enforce_version=False,
         use_mirror_sim: bool = False,
         mirror_cfg: DictConfig = None,
         mirror_ip: str = "",

@@ -441,8 +441,12 @@ class RobotInterface(BaseRobotInterface):
         pos, quat = self.robot_model.forward_kinematics(joint_pos)
         return pos, quat
 
-    def get_jacobian(joint_angles):
-        raise NotImplementedError  # TODO
+    def get_jacobian(self) -> torch.Tensor:
+        # raise NotImplementedError  # TODO
+        """Computes the Jacobian of the end-effector pose with respect to the joint angles."""
+        joint_angles = self.get_joint_positions()
+        jacobian = self.robot_model.compute_jacobian(joint_angles)
+        return jacobian
 
     """
     Movement methods

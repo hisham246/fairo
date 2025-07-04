@@ -657,37 +657,37 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
     
-    # # Hybrid joint impedance control
-    # def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
-    #     """Starts Cartesian position control mode.
-    #     Runs an non-blocking Cartesian impedance controller.
-    #     The desired EE pose can be updated using `update_desired_ee_pose`
-    #     """
-    #     torch_policy = toco.policies.HybridJointImpedanceControl(
-    #         joint_pos_current=self.get_joint_positions(),
-    #         Kq=self.Kq_default,
-    #         Kqd=self.Kqd_default,
-    #         Kx=self.Kx_default if Kx is None else Kx,
-    #         Kxd=self.Kxd_default if Kxd is None else Kxd,
-    #         robot_model=self.robot_model,
-    #         ignore_gravity=self.use_grav_comp,
-    #     )
-    #     return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
-    
-    # Cartesian impedance control
+    # Hybrid joint impedance control
     def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
         """Starts Cartesian position control mode.
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
         """
-        torch_policy = toco.policies.CartesianImpedanceControl(
+        torch_policy = toco.policies.HybridJointImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=self.Kx_default if Kx is None else Kx,
-            Kd=self.Kxd_default if Kxd is None else Kxd,
+            Kq=self.Kq_default,
+            Kqd=self.Kqd_default,
+            Kx=self.Kx_default if Kx is None else Kx,
+            Kxd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+    
+    # # Cartesian impedance control
+    # def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
+    #     """Starts Cartesian position control mode.
+    #     Runs an non-blocking Cartesian impedance controller.
+    #     The desired EE pose can be updated using `update_desired_ee_pose`
+    #     """
+    #     torch_policy = toco.policies.CartesianImpedanceControl(
+    #         joint_pos_current=self.get_joint_positions(),
+    #         Kp=self.Kx_default if Kx is None else Kx,
+    #         Kd=self.Kxd_default if Kxd is None else Kxd,
+    #         robot_model=self.robot_model,
+    #         ignore_gravity=self.use_grav_comp,
+    #     )
+    #     return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
     def update_desired_joint_positions(self, positions: torch.Tensor) -> int:
         """Update the desired joint positions used by the joint position control mode.
@@ -727,24 +727,6 @@ class RobotInterface(BaseRobotInterface):
         
         return joint_pos_desired, success
     
-    # def update_desired_ee_pose(
-    #     self,
-    #     position: torch.Tensor = None,
-    #     orientation: torch.Tensor = None,
-    # ) -> int:
-    #     """Update the desired EE pose using the Cartesian position control mode.
-    #     Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
-    #     """
-    #     joint_pos_desired, success = self.get_joint_pos_desired(position, orientation)
-
-    #     if not success:
-    #         log.warning(
-    #             "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
-    #         )
-    #         return -1
-
-    #     return self.update_desired_joint_positions(joint_pos_desired)
-
     def update_desired_ee_pose(
         self,
         position: torch.Tensor = None,
@@ -753,23 +735,41 @@ class RobotInterface(BaseRobotInterface):
         """Update the desired EE pose using the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """
-        # Use current pose if not specified
-        if position is None or orientation is None:
-            ee_pos_current, ee_quat_current = self.get_ee_pose()
-            if position is None:
-                position = ee_pos_current
-            if orientation is None:
-                orientation = ee_quat_current
+        joint_pos_desired, success = self.get_joint_pos_desired(position, orientation)
 
-        try:
-            update_idx = self.update_current_policy({"ee_pos_desired": position, "ee_quat_desired": orientation})
-        except grpc.RpcError as e:
-            log.error(
-                "Unable to update desired end effector pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+        if not success:
+            log.warning(
+                "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
             )
-            raise e
+            return -1
 
-        return update_idx
+        return self.update_desired_joint_positions(joint_pos_desired)
+
+    # def update_desired_ee_pose(
+    #     self,
+    #     position: torch.Tensor = None,
+    #     orientation: torch.Tensor = None,
+    # ) -> int:
+    #     """Update the desired EE pose using the Cartesian position control mode.
+    #     Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
+    #     """
+    #     # Use current pose if not specified
+    #     if position is None or orientation is None:
+    #         ee_pos_current, ee_quat_current = self.get_ee_pose()
+    #         if position is None:
+    #             position = ee_pos_current
+    #         if orientation is None:
+    #             orientation = ee_quat_current
+
+    #     try:
+    #         update_idx = self.update_current_policy({"ee_pos_desired": position, "ee_quat_desired": orientation})
+    #     except grpc.RpcError as e:
+    #         log.error(
+    #             "Unable to update desired end effector pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+    #         )
+    #         raise e
+
+    #     return update_idx
     
 
     def start_joint_velocity_control(

@@ -762,14 +762,15 @@ class RobotInterface(BaseRobotInterface):
                 orientation = ee_quat_current
 
         try:
-            self.robot.policy_module.ee_pos_desired.data.copy_(position)
-            self.robot.policy_module.ee_quat_desired.data.copy_(orientation)
-        except Exception as e:
-            log.warning(f"Failed to update Cartesian desired pose: {e}")
-            return -1
+            update_idx = self.update_current_policy({"ee_pos_desired": position, "ee_quat_desired": orientation})
+        except grpc.RpcError as e:
+            log.error(
+                "Unable to update desired end effector pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+            )
+            raise e
 
-        return 0
-
+        return update_idx
+    
 
     def start_joint_velocity_control(
         self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs

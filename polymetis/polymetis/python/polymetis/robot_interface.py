@@ -442,7 +442,6 @@ class RobotInterface(BaseRobotInterface):
         return pos, quat
 
     def get_jacobian(self) -> torch.Tensor:
-        # raise NotImplementedError  # TODO
         """Computes the Jacobian of the end-effector pose with respect to the joint angles."""
         joint_angles = self.get_joint_positions()
         jacobian = self.robot_model.compute_jacobian(joint_angles)
@@ -728,6 +727,24 @@ class RobotInterface(BaseRobotInterface):
         
         return joint_pos_desired, success
     
+    # def update_desired_ee_pose(
+    #     self,
+    #     position: torch.Tensor = None,
+    #     orientation: torch.Tensor = None,
+    # ) -> int:
+    #     """Update the desired EE pose using the Cartesian position control mode.
+    #     Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
+    #     """
+    #     joint_pos_desired, success = self.get_joint_pos_desired(position, orientation)
+
+    #     if not success:
+    #         log.warning(
+    #             "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
+    #         )
+    #         return -1
+
+    #     return self.update_desired_joint_positions(joint_pos_desired)
+
     def update_desired_ee_pose(
         self,
         position: torch.Tensor = None,
@@ -736,15 +753,22 @@ class RobotInterface(BaseRobotInterface):
         """Update the desired EE pose using the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """
-        joint_pos_desired, success = self.get_joint_pos_desired(position, orientation)
+        # Use current pose if not specified
+        if position is None or orientation is None:
+            ee_pos_current, ee_quat_current = self.get_ee_pose()
+            if position is None:
+                position = ee_pos_current
+            if orientation is None:
+                orientation = ee_quat_current
 
-        if not success:
-            log.warning(
-                "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
-            )
+        try:
+            self.robot.policy_module.ee_pos_desired.data.copy_(position)
+            self.robot.policy_module.ee_quat_desired.data.copy_(orientation)
+        except Exception as e:
+            log.warning(f"Failed to update Cartesian desired pose: {e}")
             return -1
 
-        return self.update_desired_joint_positions(joint_pos_desired)
+        return 0
 
 
     def start_joint_velocity_control(

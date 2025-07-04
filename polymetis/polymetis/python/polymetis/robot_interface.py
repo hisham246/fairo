@@ -657,18 +657,34 @@ class RobotInterface(BaseRobotInterface):
             )
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
-
+    
+    # # Hybrid joint impedance control
+    # def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
+    #     """Starts Cartesian position control mode.
+    #     Runs an non-blocking Cartesian impedance controller.
+    #     The desired EE pose can be updated using `update_desired_ee_pose`
+    #     """
+    #     torch_policy = toco.policies.HybridJointImpedanceControl(
+    #         joint_pos_current=self.get_joint_positions(),
+    #         Kq=self.Kq_default,
+    #         Kqd=self.Kqd_default,
+    #         Kx=self.Kx_default if Kx is None else Kx,
+    #         Kxd=self.Kxd_default if Kxd is None else Kxd,
+    #         robot_model=self.robot_model,
+    #         ignore_gravity=self.use_grav_comp,
+    #     )
+    #     return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+    
+    # Cartesian impedance control
     def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
         """Starts Cartesian position control mode.
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
         """
-        torch_policy = toco.policies.HybridJointImpedanceControl(
+        torch_policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kq=self.Kq_default,
-            Kqd=self.Kqd_default,
-            Kx=self.Kx_default if Kx is None else Kx,
-            Kxd=self.Kxd_default if Kxd is None else Kxd,
+            Kp=self.Kx_default if Kx is None else Kx,
+            Kd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )

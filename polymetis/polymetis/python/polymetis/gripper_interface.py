@@ -116,8 +116,8 @@ class GripperInterface:
             speed=speed,
             force=force,
             grasp=True,
-            epsilon_inner=epsilon_inner,
-            epsilon_outer=epsilon_outer,
+            epsilon_inner=grasp_width,
+            epsilon_outer=0.05,
         )
         cmd.timestamp.GetCurrentTime()
 

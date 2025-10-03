@@ -36,9 +36,9 @@ if __name__ == "__main__":
 
     robot.start_cartesian_impedance()
 
-    for i in range(40):
-        ee_pos += torch.Tensor([-0.0025, 0.0, 0.0])
-        robot.update_desired_ee_pose(position=ee_pos)
-        time.sleep(0.1)
+    # for i in range(40):
+    #     ee_pos += torch.Tensor([-0.0025, 0.0, 0.0])
+    #     robot.update_desired_ee_pose(position=ee_pos)
+    #     time.sleep(0.1)
 
-    robot.terminate_current_policy()
+    # robot.terminate_current_policy()

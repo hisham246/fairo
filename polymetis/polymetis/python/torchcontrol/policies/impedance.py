@@ -134,10 +134,10 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
         )  # coriolis
 
-        # torque_out = torque_feedback + torque_feedforward
+        torque_out = torque_feedback + torque_feedforward
         
         # Gravity compensation only
-        torque_out = torch.zeros_like(torque_feedforward)
+        # torque_out = torch.zeros_like(torque_feedforward)
 
         return {"joint_torques": torque_out}    
 

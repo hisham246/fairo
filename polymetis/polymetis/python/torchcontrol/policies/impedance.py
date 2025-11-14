@@ -142,6 +142,21 @@ class JointImpedanceControl(toco.PolicyModule):
 #         return {"joint_torques": torque_out}    
 
 
+class TorqueRateLimiter(torch.nn.Module):
+    def __init__(self, delta_tau_max=1.0, n=7):
+        super().__init__()
+        self.register_buffer("prev_tau", torch.zeros(n))
+        self.delta_tau_max = float(delta_tau_max)
+    def forward(self, tau):
+        dtau = torch.clamp(
+            tau - self.prev_tau,
+            -self.delta_tau_max,
+            self.delta_tau_max,
+        )
+        out = self.prev_tau + dtau
+        self.prev_tau = out.detach()
+        return out
+    
 # Variable impedance control
 class HybridJointImpedanceControl(toco.PolicyModule):
     """
@@ -178,6 +193,8 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         # self.register_parameter("Kqd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kqd))))
         # self.register_parameter("Kx", torch.nn.Parameter(diagonalize_gain(to_tensor(Kx))))
         # self.register_parameter("Kxd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kxd))))
+
+        # self.tau_limiter = TorqueRateLimiter(delta_tau_max=1.0, n=self.joint_pos_desired.numel())
 
         # store vectors as parameters (shape-safe updates)
         self.register_parameter("Kq_vec",  torch.nn.Parameter(to_tensor(Kq).reshape(-1)))

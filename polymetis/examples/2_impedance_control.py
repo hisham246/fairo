@@ -7,7 +7,6 @@ import time
 
 from polymetis import RobotInterface
 
-
 if __name__ == "__main__":
     # Initialize robot interface
     robot = RobotInterface(

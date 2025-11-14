@@ -174,10 +174,24 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             self.robot_model, ignore_gravity=ignore_gravity
         )
         # Register gains as parameters
-        self.register_parameter("Kq", torch.nn.Parameter(diagonalize_gain(to_tensor(Kq))))
-        self.register_parameter("Kqd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kqd))))
-        self.register_parameter("Kx", torch.nn.Parameter(diagonalize_gain(to_tensor(Kx))))
-        self.register_parameter("Kxd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kxd))))
+        # self.register_parameter("Kq", torch.nn.Parameter(diagonalize_gain(to_tensor(Kq))))
+        # self.register_parameter("Kqd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kqd))))
+        # self.register_parameter("Kx", torch.nn.Parameter(diagonalize_gain(to_tensor(Kx))))
+        # self.register_parameter("Kxd", torch.nn.Parameter(diagonalize_gain(to_tensor(Kxd))))
+
+        # store vectors as parameters (shape-safe updates)
+        self.register_parameter("Kq_vec",  torch.nn.Parameter(to_tensor(Kq).reshape(-1)))
+        self.register_parameter("Kqd_vec", torch.nn.Parameter(to_tensor(Kqd).reshape(-1)))
+        self.register_parameter("Kx_vec",  torch.nn.Parameter(to_tensor(Kx).reshape(-1)))
+        self.register_parameter("Kxd_vec", torch.nn.Parameter(to_tensor(Kxd).reshape(-1)))
+
+        # targets for smoothing like dynamic_reconfigure
+        self.register_parameter("Kx_tgt_vec",  torch.nn.Parameter(self._param_dict["Kx_vec"].clone()))
+        self.register_parameter("Kxd_tgt_vec", torch.nn.Parameter(self._param_dict["Kxd_vec"].clone()))
+        self.register_parameter("Kq_tgt_vec",  torch.nn.Parameter(self._param_dict["Kq_vec"].clone()))
+        self.register_parameter("Kqd_tgt_vec", torch.nn.Parameter(self._param_dict["Kqd_vec"].clone()))
+        self.beta = 0.1  # per-tick blend factor (~LPF)
+
 
         self.joint_pd = toco.modules.feedback.HybridJointSpacePD()
 
@@ -193,21 +207,42 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         Returns:
             A dictionary containing the controller output
         """
+
+        # smooth targets into current (server-side LPF like ROS)
+        with torch.no_grad():
+            for name in ["Kx_vec", "Kxd_vec", "Kq_vec", "Kqd_vec"]:
+                cur = self._param_dict[name]
+                tgt = self._param_dict[name.replace("_vec", "_tgt_vec")]
+                cur.data = (1 - self.beta) * cur.data + self.beta * tgt.data
+
+        # diagonalize at runtime (cheap; 6/7 elems)
+        Kx  = diagonalize_gain(self._param_dict["Kx_vec"])
+        Kxd = diagonalize_gain(self._param_dict["Kxd_vec"])
+        Kq  = diagonalize_gain(self._param_dict["Kq_vec"])
+        Kqd = diagonalize_gain(self._param_dict["Kqd_vec"])
+
         # State extraction
         joint_pos_current = state_dict["joint_positions"]
         joint_vel_current = state_dict["joint_velocities"]
 
         # Control logic
+        # torque_feedback = self.joint_pd(
+        #     joint_pos_current,
+        #     joint_vel_current,
+        #     self.joint_pos_desired,
+        #     self.joint_vel_desired,
+        #     self.robot_model.compute_jacobian(joint_pos_current),
+        #     self._param_dict["Kq"],
+        #     self._param_dict["Kqd"],
+        #     self._param_dict["Kx"],
+        #     self._param_dict["Kxd"],
+        # )
+
         torque_feedback = self.joint_pd(
-            joint_pos_current,
-            joint_vel_current,
-            self.joint_pos_desired,
-            self.joint_vel_desired,
+            joint_pos_current, joint_vel_current,
+            self.joint_pos_desired, self.joint_vel_desired,
             self.robot_model.compute_jacobian(joint_pos_current),
-            self._param_dict["Kq"],
-            self._param_dict["Kqd"],
-            self._param_dict["Kx"],
-            self._param_dict["Kxd"],
+            Kq, Kqd, Kx, Kxd
         )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)

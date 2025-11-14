@@ -197,24 +197,48 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         # self.tau_limiter = TorqueRateLimiter(delta_tau_max=1.0, n=self.joint_pos_desired.numel())
 
         # store vectors as parameters (shape-safe updates)
-        self.register_parameter("Kq_vec",  torch.nn.Parameter(to_tensor(Kq).reshape(-1)))
-        self.register_parameter("Kqd_vec", torch.nn.Parameter(to_tensor(Kqd).reshape(-1)))
-        self.register_parameter("Kx_vec",  torch.nn.Parameter(to_tensor(Kx).reshape(-1)))
-        self.register_parameter("Kxd_vec", torch.nn.Parameter(to_tensor(Kxd).reshape(-1)))
+        # gains as vectors
+        Kq_init  = to_tensor(Kq).reshape(-1)
+        Kqd_init = to_tensor(Kqd).reshape(-1)
+        Kx_init  = to_tensor(Kx).reshape(-1)
+        Kxd_init = to_tensor(Kxd).reshape(-1)
 
-        # targets for smoothing like dynamic_reconfigure
-        self.register_parameter("Kx_tgt_vec",  torch.nn.Parameter(self._param_dict["Kx_vec"].clone()))
-        self.register_parameter("Kxd_tgt_vec", torch.nn.Parameter(self._param_dict["Kxd_vec"].clone()))
-        self.register_parameter("Kq_tgt_vec",  torch.nn.Parameter(self._param_dict["Kq_vec"].clone()))
-        self.register_parameter("Kqd_tgt_vec", torch.nn.Parameter(self._param_dict["Kqd_vec"].clone()))
-        self.beta = 0.1  # per-tick blend factor (~LPF)
+        # current (smoothed) values
+        self.Kq_vec  = torch.nn.Parameter(Kq_init.clone())
+        self.Kqd_vec = torch.nn.Parameter(Kqd_init.clone())
+        self.Kx_vec  = torch.nn.Parameter(Kx_init.clone())
+        self.Kxd_vec = torch.nn.Parameter(Kxd_init.clone())
 
+        # target values (what update_current_policy writes to)
+        self.Kq_tgt_vec  = torch.nn.Parameter(Kq_init.clone())
+        self.Kqd_tgt_vec = torch.nn.Parameter(Kqd_init.clone())
+        self.Kx_tgt_vec  = torch.nn.Parameter(Kx_init.clone())
+        self.Kxd_tgt_vec = torch.nn.Parameter(Kxd_init.clone())
+
+        # smoothing factor
+        self.beta: float = 0.1
 
         self.joint_pd = toco.modules.feedback.HybridJointSpacePD()
 
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
+
+    def _smooth_gains(self):
+            b = self.beta
+
+            # in-place on parameters (JIT-friendly)
+            self.Kq_vec.mul_(1.0 - b)
+            self.Kq_vec.add_(b * self.Kq_tgt_vec)
+
+            self.Kqd_vec.mul_(1.0 - b)
+            self.Kqd_vec.add_(b * self.Kqd_tgt_vec)
+
+            self.Kx_vec.mul_(1.0 - b)
+            self.Kx_vec.add_(b * self.Kx_tgt_vec)
+
+            self.Kxd_vec.mul_(1.0 - b)
+            self.Kxd_vec.add_(b * self.Kxd_tgt_vec)
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
@@ -225,19 +249,15 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             A dictionary containing the controller output
         """
 
-        # smooth targets into current (server-side LPF like ROS)
-        with torch.no_grad():
-            for name in ["Kx_vec", "Kxd_vec", "Kq_vec", "Kqd_vec"]:
-                cur = self._param_dict[name]
-                tgt = self._param_dict[name.replace("_vec", "_tgt_vec")]
-                cur.data = (1 - self.beta) * cur.data + self.beta * tgt.data
+        # smooth gains (no .data, no _param_dict)
+        self._smooth_gains()
 
-        # diagonalize at runtime (cheap; 6/7 elems)
-        Kx  = diagonalize_gain(self._param_dict["Kx_vec"])
-        Kxd = diagonalize_gain(self._param_dict["Kxd_vec"])
-        Kq  = diagonalize_gain(self._param_dict["Kq_vec"])
-        Kqd = diagonalize_gain(self._param_dict["Kqd_vec"])
-
+        # diagonalize at runtime
+        Kx  = diagonalize_gain(self.Kx_vec)
+        Kxd = diagonalize_gain(self.Kxd_vec)
+        Kq  = diagonalize_gain(self.Kq_vec)
+        Kqd = diagonalize_gain(self.Kqd_vec)
+        
         # State extraction
         joint_pos_current = state_dict["joint_positions"]
         joint_vel_current = state_dict["joint_velocities"]

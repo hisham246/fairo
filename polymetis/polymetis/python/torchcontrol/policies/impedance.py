@@ -151,8 +151,6 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             torch.cat([self.ee_vel_desired, self.ee_rvel_desired]),
         )
 
-        # If wrench_feedback is already a tensor, just move it to the CPU
-        # wrench_feedback_tensor = wrench_feedback  # Move it to the CPU
         if isinstance(wrench_feedback, torch.Tensor):
             # Detach the tensor from the computation graph and move it to the CPU
             wrench_feedback_tensor = wrench_feedback.detach().cpu()
@@ -160,14 +158,16 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             # Check if it's a tensor and print the numpy conversion
             print(f"Cartesian force feedback tensor: {wrench_feedback_tensor}")
             
-            # Convert it to NumPy
-            try:
-                wrench_feedback_numpy = wrench_feedback_tensor.numpy()
-                print(f"Converted to NumPy: {wrench_feedback_numpy}")
-            except Exception as e:
-                print(f"Error during numpy conversion: {e}")
+            # Convert it to NumPy without using try/except
+            if wrench_feedback_tensor.is_cuda:
+                wrench_feedback_tensor = wrench_feedback_tensor.cpu()  # Move to CPU if it's on GPU
+                
+            # Ensure it's a tensor and convert to NumPy
+            wrench_feedback_numpy = wrench_feedback_tensor.numpy()
+            print(f"Converted to NumPy: {wrench_feedback_numpy}")
         else:
             print("wrench_feedback is not a torch.Tensor directly.")
+
 
 
         # Control logic

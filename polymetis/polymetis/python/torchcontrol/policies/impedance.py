@@ -153,7 +153,7 @@ class HybridJointImpedanceControl(toco.PolicyModule):
 
         wrench_tensor = torch.tensor(wrench_feedback).to(torch.device("cpu"))
 
-        print("Cartesian force feedback:", wrench_tensor.numpy())
+        print("Cartesian force feedback:", wrench_tensor.cpu().numpy())
 
         # Control logic
         torque_feedback = self.joint_pd(

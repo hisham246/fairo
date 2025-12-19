@@ -105,6 +105,19 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         )
         self.joint_pd = toco.modules.feedback.HybridJointSpacePD(Kq, Kqd, Kx, Kxd)
 
+        # For recording Cartesian force feedback
+        self.pose_pd = toco.modules.feedback.CartesianSpacePDFast(Kx, Kxd)
+        # Reference pose
+        joint_pos_current = to_tensor(joint_pos_current)
+        ee_pos_current, ee_quat_current = self.robot_model.forward_kinematics(
+            joint_pos_current
+        )
+        self.ee_pos_desired = torch.nn.Parameter(ee_pos_current)
+        self.ee_quat_desired = torch.nn.Parameter(ee_quat_current)
+        self.ee_vel_desired = torch.nn.Parameter(torch.zeros(3))
+        self.ee_rvel_desired = torch.nn.Parameter(torch.zeros(3))
+
+
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
@@ -121,6 +134,24 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         # State extraction
         joint_pos_current = state_dict["joint_positions"]
         joint_vel_current = state_dict["joint_velocities"]
+
+        # For recording Cartesian force feedback
+        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+        ee_twist_current = jacobian @ joint_vel_current
+        ee_pos_current, ee_quat_current = self.robot_model.forward_kinematics(
+            joint_pos_current
+        )
+
+        wrench_feedback = self.pose_pd(
+            ee_pos_current,
+            ee_quat_current,
+            ee_twist_current,
+            self.ee_pos_desired,
+            self.ee_quat_desired,
+            torch.cat([self.ee_vel_desired, self.ee_rvel_desired]),
+        )
+
+        print("Cartesian force feedback:", wrench_feedback.detach().cpu().numpy())
 
         # Control logic
         torque_feedback = self.joint_pd(

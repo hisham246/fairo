@@ -151,9 +151,12 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             torch.cat([self.ee_vel_desired, self.ee_rvel_desired]),
         )
 
-        wrench_tensor = torch.tensor(wrench_feedback).to(torch.device("cpu"))
+        # If wrench_feedback is already a tensor, just move it to the CPU
+        wrench_feedback_tensor = wrench_feedback.cpu()  # Move it to the CPU
 
-        print("Cartesian force feedback:", wrench_tensor)
+        # Now you can print it or convert it to a NumPy array
+        print("Cartesian force feedback:", wrench_feedback_tensor)
+        print(f"Cartesian force feedback (6D): {wrench_feedback_tensor.cpu().numpy()}")
 
         # Control logic
         torque_feedback = self.joint_pd(

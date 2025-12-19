@@ -11,6 +11,7 @@ from torchcontrol.transform import Transformation as T
 from torchcontrol.transform import Rotation as R
 from torchcontrol.utils import to_tensor, diagonalize_gain
 from typing import List
+import numpy as np
 
 
 class JointImpedanceControl(toco.PolicyModule):
@@ -152,26 +153,14 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             torch.cat([self.ee_vel_desired, self.ee_rvel_desired]),
         )
 
-        if isinstance(wrench_feedback, torch.Tensor):
-            # Detach the tensor from the computation graph and move it to the CPU
-            wrench_feedback_tensor = wrench_feedback.detach().cpu()
-            wrench_feedback_list: List[float] = wrench_feedback_tensor.tolist()
+        # Detach the tensor from the computation graph and move it to the CPU
+        wrench_feedback_tensor = wrench_feedback.detach().cpu()
+        wrench_feedback_list: List[float] = wrench_feedback_tensor.tolist()
+        wrench_feedback_numpy = np.array(wrench_feedback_list)
 
-
-            # Check if it's a tensor and print the numpy conversion
-            print(f"Cartesian force feedback tensor: {wrench_feedback_list}")
+        # Check if it's a tensor and print the numpy conversion
+        print(f"Cartesian force feedback tensor: {wrench_feedback_numpy}")
             
-            # Convert it to NumPy without using try/except
-            if wrench_feedback_tensor.is_cuda:
-                wrench_feedback_tensor = wrench_feedback_tensor.cpu()  # Move to CPU if it's on GPU
-                
-            # Ensure it's a tensor and convert to NumPy
-            # wrench_feedback_numpy = wrench_feedback_tensor.numpy()
-            # print(f"Converted to NumPy: {wrench_feedback_numpy}")
-        else:
-            print("wrench_feedback is not a torch.Tensor directly.")
-
-
 
         # Control logic
         torque_feedback = self.joint_pd(

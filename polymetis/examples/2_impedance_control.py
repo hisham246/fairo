@@ -14,20 +14,20 @@ if __name__ == "__main__":
     )
 
     # Reset
-    robot.go_home()
+    # robot.go_home()
 
     # Joint impedance control
     joint_positions = robot.get_joint_positions()
 
-    print("Performing joint impedance control...")
-    robot.start_joint_impedance()
+    # print("Performing joint impedance control...")
+    # robot.start_joint_impedance()
 
-    for i in range(40):
-        joint_positions += torch.Tensor([0.0, 0.0, 0.0, 0.0, 0.0, -0.015, 0.0])
-        robot.update_desired_joint_positions(joint_positions)
-        time.sleep(0.1)
+    # for i in range(40):
+    #     joint_positions += torch.Tensor([0.0, 0.0, 0.0, 0.0, 0.0, -0.015, 0.0])
+    #     robot.update_desired_joint_positions(joint_positions)
+    #     time.sleep(0.1)
 
-    robot.terminate_current_policy()
+    # robot.terminate_current_policy()
 
     # Cartesian impedance control
     print("Performing Cartesian impedance control...")

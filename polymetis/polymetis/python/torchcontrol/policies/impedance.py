@@ -10,6 +10,7 @@ import torchcontrol as toco
 from torchcontrol.transform import Transformation as T
 from torchcontrol.transform import Rotation as R
 from torchcontrol.utils import to_tensor, diagonalize_gain
+from typing import List
 
 
 class JointImpedanceControl(toco.PolicyModule):
@@ -153,10 +154,12 @@ class HybridJointImpedanceControl(toco.PolicyModule):
 
         if isinstance(wrench_feedback, torch.Tensor):
             # Detach the tensor from the computation graph and move it to the CPU
-            wrench_feedback_tensor = wrench_feedback.detach().cpu().tolist()
+            wrench_feedback_tensor = wrench_feedback.detach().cpu()
+            wrench_feedback_list: List[float] = wrench_feedback_tensor.tolist()
+
 
             # Check if it's a tensor and print the numpy conversion
-            print(f"Cartesian force feedback tensor: {wrench_feedback_tensor}")
+            print(f"Cartesian force feedback tensor: {wrench_feedback_list}")
             
             # Convert it to NumPy without using try/except
             if wrench_feedback_tensor.is_cuda:

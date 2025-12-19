@@ -155,7 +155,8 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         wrench_feedback_tensor = wrench_feedback.cpu()  # Move it to the CPU
 
         # Now you can print it or convert it to a NumPy array
-        print("Cartesian force feedback:", type(wrench_feedback_tensor))
+        print(f"Cartesian force feedback dtype: {wrench_feedback_tensor.dtype}")
+        print(f"Cartesian force feedback device: {wrench_feedback_tensor.device}")
         # print(f"Cartesian force feedback (6D): {wrench_feedback_tensor}")
 
         # Control logic

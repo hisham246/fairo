@@ -153,13 +153,20 @@ class HybridJointImpedanceControl(toco.PolicyModule):
 
         # If wrench_feedback is already a tensor, just move it to the CPU
         # wrench_feedback_tensor = wrench_feedback  # Move it to the CPU
-
-        # If wrench_feedback is a tensor (PyTorch or tensor-like object), use detach() and move it to the CPU
         if isinstance(wrench_feedback, torch.Tensor):
-            wrench_feedback_tensor = wrench_feedback.detach().cpu()  # Remove from the computation graph and move to CPU
-            print(f"Cartesian force feedback tensor: {type(wrench_feedback_tensor)}")
+            # Detach the tensor from the computation graph and move it to the CPU
+            wrench_feedback_tensor = wrench_feedback.detach().cpu()
+
+            # Check if it's a tensor and print the numpy conversion
+            print(f"Cartesian force feedback tensor: {wrench_feedback_tensor}")
+            
+            # Convert it to NumPy
+            try:
+                wrench_feedback_numpy = wrench_feedback_tensor.numpy()
+                print(f"Converted to NumPy: {wrench_feedback_numpy}")
+            except Exception as e:
+                print(f"Error during numpy conversion: {e}")
         else:
-            # If it's not a standard tensor, try extracting the internal tensor (if applicable)
             print("wrench_feedback is not a torch.Tensor directly.")
 
 

@@ -166,8 +166,8 @@ class HybridJointImpedanceControl(toco.PolicyModule):
                 wrench_feedback_tensor = wrench_feedback_tensor.cpu()  # Move to CPU if it's on GPU
                 
             # Ensure it's a tensor and convert to NumPy
-            wrench_feedback_numpy = wrench_feedback_tensor.numpy()
-            print(f"Converted to NumPy: {wrench_feedback_numpy}")
+            # wrench_feedback_numpy = wrench_feedback_tensor.numpy()
+            # print(f"Converted to NumPy: {wrench_feedback_numpy}")
         else:
             print("wrench_feedback is not a torch.Tensor directly.")
 

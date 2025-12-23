@@ -312,6 +312,9 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         #     self._param_dict["Kxd"],
         # )
 
+        print("Stiffness:", Kx.diag())
+        print("Damping:", Kxd.diag())
+
         torque_feedback = self.joint_pd(
             joint_pos_current, joint_vel_current,
             self.joint_pos_desired, self.joint_vel_desired,

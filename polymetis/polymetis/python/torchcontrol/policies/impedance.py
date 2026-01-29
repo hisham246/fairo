@@ -395,7 +395,7 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         wrench_feedback_tensor = wrench_feedback.detach().cpu()
         wrench_feedback_list: List[float] = wrench_feedback_tensor.tolist()
 
-        self._log_wrench_row(wrench_feedback_list)
+        # self._log_wrench_row(wrench_feedback_list)
 
         # print("Cartesian force feedback:", wrench_feedback_list)
 

@@ -11,7 +11,6 @@ if __name__ == "__main__":
     
     # 1. Setup custom policy
     joint_pos = robot.get_joint_positions()
-    
     custom_policy = HybridJointImpedanceControl(
         joint_pos_current=joint_pos,
         Kq=torch.ones(7) * 5.0,
@@ -27,33 +26,37 @@ if __name__ == "__main__":
     # 2. Open stream
     st_stream = robot.grpc_connection.GetRobotStateStream(EMPTY)
 
-    with open("wrench_log.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["Fx", "Fy", "Fz", "Tx", "Ty", "Tz"])
-
-        print("Logging... Press Ctrl+C to stop.")
-        try:
-            for state_msg in st_stream:
-                # 3. Manually deserialize the 'extra_data'
-                # Polymetis stores 'extra_data' as a Dict[str, Tensor] serialized via torch.jit
-                if state_msg.extra_data:
-                    # Use torch.jit.load on a buffer created from the raw bytes
-                    buffer = io.BytesIO(state_msg.extra_data)
-                    
-                    # In many Polymetis versions, extra_data is a serialized ParamDictContainer
+    print("--- Message Inspection ---")
+    try:
+        for state_msg in st_stream:
+            # List all fields available in the message to find the right one
+            fields = [field[0].name for field in state_msg.ListFields()]
+            print(f"Available fields in RobotState: {fields}")
+            
+            # Check for common alternative names for the return dict
+            target_field = None
+            for candidate in ["custom_data", "extra_data", "policy_data"]:
+                if hasattr(state_msg, candidate):
+                    target_field = candidate
+                    break
+            
+            if target_field:
+                print(f"Found data in: {target_field}")
+                # Once found, we can try to decode it
+                data_bytes = getattr(state_msg, target_field)
+                if data_bytes:
+                    buffer = io.BytesIO(data_bytes)
+                    # Attempt to load
                     try:
-                        # We load the data. Since it's a scripted dict, we can access it:
-                        extra_data_container = torch.jit.load(buffer)
-                        # Access the dictionary (usually named 'param_dict' or returned via forward)
-                        return_dict = extra_data_container.forward()
-                        
-                        if "wrench_log" in return_dict:
-                            wrench = return_dict["wrench_log"].tolist()
-                            writer.writerow(wrench)
-                    except Exception as e:
-                        # If jit.load fails, the format might be raw bytes of the tensor
-                        pass
-                
-        except KeyboardInterrupt:
-            print("\nShutting down...")
-            robot.terminate_current_policy()
+                        data = torch.jit.load(buffer)
+                        print("Successfully decoded data!")
+                        # Break after one successful inspection to avoid flooding
+                        break 
+                    except:
+                        print("Found field but failed to decode via torch.jit.load")
+            else:
+                print("Could not find a binary data field in this message version.")
+                break
+
+    except KeyboardInterrupt:
+        robot.terminate_current_policy()

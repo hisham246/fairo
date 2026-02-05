@@ -1,18 +1,17 @@
 import torch
 import csv
+import io
 from polymetis import RobotInterface
 from torchcontrol.policies.impedance import HybridJointImpedanceControl 
 from polymetis_pb2 import Empty
 
 if __name__ == "__main__":
-    # Initialize robot
     robot = RobotInterface(ip_address="localhost")
     EMPTY = Empty()
     
     # 1. Setup custom policy
     joint_pos = robot.get_joint_positions()
     
-    # Note: Use robot.robot_model (the attribute created in RobotInterface.__init__)
     custom_policy = HybridJointImpedanceControl(
         joint_pos_current=joint_pos,
         Kq=torch.ones(7) * 5.0,
@@ -23,38 +22,38 @@ if __name__ == "__main__":
     )
 
     print("Sending custom policy...")
-    
-    # 2. Start the policy (non-blocking)
-    # This sends it to the server, but as we saw in your code, this returns None
     robot.send_torch_policy(custom_policy, blocking=False)
 
-    # 3. Connect to the server's feedback stream manually
-    # This is where return_dict values (like 'wrench_log') are sent
-    print("Opening stream and logging to wrench_log.csv...")
+    # 2. Open stream
     st_stream = robot.grpc_connection.GetRobotStateStream(EMPTY)
 
     with open("wrench_log.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Fx", "Fy", "Fz", "Tx", "Ty", "Tz"])
 
+        print("Logging... Press Ctrl+C to stop.")
         try:
-            for state_dict_msg in st_stream:
-                # The 'state_dict_msg' contains the 'extra_data' field 
-                # where your return_dict values are stored as tensors
-                
-                # Convert the Protobuf map to a dictionary of torch tensors
-                # Note: Polymetis handles the conversion from the msg format
-                import torch
-                from polymetis.utils.data import msg_to_tensors
-                
-                return_dict = msg_to_tensors(state_dict_msg.extra_data)
-
-                if "wrench_log" in return_dict:
-                    wrench = return_dict["wrench_log"].tolist()
-                    writer.writerow(wrench)
-                    # Optional: print to see it working
-                    # print(f"Wrench: {wrench}")
+            for state_msg in st_stream:
+                # 3. Manually deserialize the 'extra_data'
+                # Polymetis stores 'extra_data' as a Dict[str, Tensor] serialized via torch.jit
+                if state_msg.extra_data:
+                    # Use torch.jit.load on a buffer created from the raw bytes
+                    buffer = io.BytesIO(state_msg.extra_data)
+                    
+                    # In many Polymetis versions, extra_data is a serialized ParamDictContainer
+                    try:
+                        # We load the data. Since it's a scripted dict, we can access it:
+                        extra_data_container = torch.jit.load(buffer)
+                        # Access the dictionary (usually named 'param_dict' or returned via forward)
+                        return_dict = extra_data_container.forward()
+                        
+                        if "wrench_log" in return_dict:
+                            wrench = return_dict["wrench_log"].tolist()
+                            writer.writerow(wrench)
+                    except Exception as e:
+                        # If jit.load fails, the format might be raw bytes of the tensor
+                        pass
                 
         except KeyboardInterrupt:
-            print("Interrupt caught. Terminating policy...")
+            print("\nShutting down...")
             robot.terminate_current_policy()

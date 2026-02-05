@@ -1,32 +1,48 @@
 import torch
 import csv
 from polymetis import RobotInterface
+# Import your custom class from the file where you defined it
+from torchcontrol.policies.impedance import HybridJointImpedanceControl 
 
 if __name__ == "__main__":
     robot = RobotInterface(ip_address="localhost")
-    print("Performing Cartesian impedance control...")
     
-    # 1. Start the policy (this returns a generator)
-    # Note: blocking=False allows us to enter the loop below immediately
-    results = robot.start_cartesian_impedance()
+    # 1. Setup your custom policy
+    joint_pos = robot.get_joint_positions()
+    robot_model = robot.get_robot_model()
+    
+    # Initialize your specific class
+    # Make sure to pass the gains/parameters your __init__ expects
+    custom_policy = HybridJointImpedanceControl(
+        joint_pos_current=joint_pos,
+        Kq=torch.ones(7) * 50.0,
+        Kqd=torch.ones(7) * 5.0,
+        Kx=torch.ones(6) * 100.0,
+        Kxd=torch.ones(6) * 10.0,
+        robot_model=robot_model
+    )
 
-    # 2. Open your CSV file here in the main script
+    print("Sending custom policy...")
+    
+    # 2. Use send_torch_policy to get the results generator
+    # This is the key change!
+    results = robot.send_torch_policy(custom_policy, blocking=False)
+
+    if results is None:
+        print("Error: Policy failed to start.")
+        exit()
+
+    # 3. Now the loop will work
     with open("wrench_log.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Fx", "Fy", "Fz", "Tx", "Ty", "Tz"])
 
         try:
-            # 3. Iterate through the results generator
-            # This loop runs as long as the policy is active
             for state_dict, return_dict in results:
-                # Extract the log data we defined in the forward() method
+                # 'return_dict' contains the values you put in 'forward'
                 if "wrench_log" in return_dict:
                     wrench = return_dict["wrench_log"].tolist()
                     writer.writerow(wrench)
                 
-                # You can still perform updates here
-                # robot.update_desired_ee_pose(...)
-                
         except KeyboardInterrupt:
-            print("Stopping...")
             robot.terminate_current_policy()

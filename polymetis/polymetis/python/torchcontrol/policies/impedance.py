@@ -272,6 +272,10 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         # -------------------------------
         # Wrench CSV logging setup
         # -------------------------------
+
+        # Mark the writer as ignored so JIT doesn't try to compile it
+        __constants__ = ['_csv_path'] # if you use strings as constants
+
         self.log_wrench = log_wrench
         self._log_flush_every = int(log_flush_every)
         self._log_counter = 0
@@ -311,7 +315,9 @@ class HybridJointImpedanceControl(toco.PolicyModule):
             self.Kxd_vec.mul_(1.0 - b)
             self.Kxd_vec.add_(b * self.Kxd_tgt_vec)
 
+    @torch.jit.ignore
     def _log_wrench_row(self, wrench_list: List[float]) -> None:
+        # This code will now be ignored by the compiler
         if (not self.log_wrench) or (self._csv_writer is None):
             return
 

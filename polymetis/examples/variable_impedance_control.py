@@ -1,62 +1,76 @@
 import torch
 import csv
-import io
+import time
 from polymetis import RobotInterface
 from torchcontrol.policies.impedance import HybridJointImpedanceControl 
 from polymetis_pb2 import Empty
 
 if __name__ == "__main__":
+    # Initialize robot interface
     robot = RobotInterface(ip_address="localhost")
     EMPTY = Empty()
     
     # 1. Setup custom policy
     joint_pos = robot.get_joint_positions()
+    
+    # Define your gains
+    Kq = torch.ones(7) * 5.0
+    Kqd = torch.ones(7) * 1.0
+    Kx = torch.ones(6) * 50.0
+    Kxd = torch.ones(6) * 5.0
+
     custom_policy = HybridJointImpedanceControl(
         joint_pos_current=joint_pos,
-        Kq=torch.ones(7) * 5.0,
-        Kqd=torch.ones(7) * 1.0,
-        Kx=torch.ones(6) * 50.0,
-        Kxd=torch.ones(6) * 5.0,
+        Kq=Kq,
+        Kqd=Kqd,
+        Kx=Kx,
+        Kxd=Kxd,
         robot_model=robot.robot_model 
     )
 
     print("Sending custom policy...")
     robot.send_torch_policy(custom_policy, blocking=False)
 
-    # 2. Open stream
+    # 2. Open gRPC stream
     st_stream = robot.grpc_connection.GetRobotStateStream(EMPTY)
 
-    print("--- Message Inspection ---")
-    try:
-        for state_msg in st_stream:
-            # List all fields available in the message to find the right one
-            fields = [field[0].name for field in state_msg.ListFields()]
-            print(f"Available fields in RobotState: {fields}")
-            
-            # Check for common alternative names for the return dict
-            target_field = None
-            for candidate in ["custom_data", "extra_data", "policy_data"]:
-                if hasattr(state_msg, candidate):
-                    target_field = candidate
-                    break
-            
-            if target_field:
-                print(f"Found data in: {target_field}")
-                # Once found, we can try to decode it
-                data_bytes = getattr(state_msg, target_field)
-                if data_bytes:
-                    buffer = io.BytesIO(data_bytes)
-                    # Attempt to load
-                    try:
-                        data = torch.jit.load(buffer)
-                        print("Successfully decoded data!")
-                        # Break after one successful inspection to avoid flooding
-                        break 
-                    except:
-                        print("Found field but failed to decode via torch.jit.load")
-            else:
-                print("Could not find a binary data field in this message version.")
-                break
+    # 3. Setup CSV logging
+    filename = f"wrench_log_{int(time.time())}.csv"
+    print(f"Logging to {filename}... Press Ctrl+C to stop.")
 
-    except KeyboardInterrupt:
-        robot.terminate_current_policy()
+    with open(filename, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Fx", "Fy", "Fz", "Tx", "Ty", "Tz"])
+        
+        try:
+            for state_msg in st_stream:
+                # 1. Extract current state from gRPC message
+                q = torch.tensor(state_msg.joint_positions)
+                dq = torch.tensor(state_msg.joint_velocities)
+                
+                # 2. Compute kinematics locally (Mirroring the controller)
+                ee_pos, ee_quat = robot.robot_model.forward_kinematics(q)
+                jacobian = robot.robot_model.compute_jacobian(q)
+                ee_twist = jacobian @ dq
+                
+                # 3. Replicate the wrench calculation
+                # We access the desired values directly from the policy parameters
+                wrench_feedback = custom_policy.pose_pd(
+                    ee_pos, 
+                    ee_quat, 
+                    ee_twist,
+                    custom_policy.ee_pos_desired,
+                    custom_policy.ee_quat_desired,
+                    torch.cat([custom_policy.ee_vel_desired, custom_policy.ee_rvel_desired])
+                )
+                
+                # 4. Log to CSV
+                writer.writerow(wrench_feedback.tolist())
+                
+                # Optional: periodic print to verify values
+                if int(time.time() * 10) % 5 == 0: 
+                   print(f"Force: {wrench_feedback[:3].tolist()}")
+
+        except KeyboardInterrupt:
+            print("\nInterrupt caught. Terminating policy...")
+            robot.terminate_current_policy()

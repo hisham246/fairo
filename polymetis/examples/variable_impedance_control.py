@@ -68,8 +68,8 @@ if __name__ == "__main__":
                 writer.writerow(wrench_feedback.tolist())
                 
                 # Optional: periodic print to verify values
-                if int(time.time() * 10) % 5 == 0: 
-                   print(f"Force: {wrench_feedback[:3].tolist()}")
+                # if int(time.time() * 10) % 5 == 0: 
+                print(f"Force: {wrench_feedback[:3].tolist()}")
 
         except KeyboardInterrupt:
             print("\nInterrupt caught. Terminating policy...")

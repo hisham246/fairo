@@ -201,10 +201,10 @@ class HybridJointImpedanceControl(toco.PolicyModule):
     Impedance control in joint space, but with both fixed joint gains and adaptive operational space gains.
     """
 
-    def __init__(self, joint_pos_current, Kq, Kqd, Kx, Kxd, robot_model, ignore_gravity=True,
-                 log_wrench: bool = True,
-                 log_dir: str = "./force_logs",
-                 log_flush_every: int = 1):
+    def __init__(self, joint_pos_current, Kq, Kqd, Kx, Kxd, robot_model, ignore_gravity=True):
+                #  log_wrench: bool = True,
+                #  log_dir: str = "./force_logs",
+                #  log_flush_every: int = 1):
         """
         Args:
             joint_pos_current: Current joint positions
@@ -269,35 +269,35 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
         self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
 
-        # -------------------------------
-        # Wrench CSV logging setup
-        # -------------------------------
+        # # -------------------------------
+        # # Wrench CSV logging setup
+        # # -------------------------------
 
-        # Mark the writer as ignored so JIT doesn't try to compile it
-        __constants__ = ['_csv_path'] # if you use strings as constants
+        # # Mark the writer as ignored so JIT doesn't try to compile it
+        # __constants__ = ['_csv_path'] # if you use strings as constants
 
-        self.log_wrench = log_wrench
-        self._log_flush_every = int(log_flush_every)
-        self._log_counter = 0
+        # self.log_wrench = log_wrench
+        # self._log_flush_every = int(log_flush_every)
+        # self._log_counter = 0
 
-        self._csv_file = None
-        self._csv_writer = None
+        # self._csv_file = None
+        # self._csv_writer = None
 
-        if self.log_wrench:
-            pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
-            ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            self._csv_path = os.path.join(log_dir, f"wrench_{ts}.csv")
+        # if self.log_wrench:
+        #     pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
+        #     ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        #     self._csv_path = os.path.join(log_dir, f"wrench_{ts}.csv")
 
-            # newline="" avoids blank lines on Windows
-            self._csv_file = open(self._csv_path, "w", newline="")
-            self._csv_writer = csv.writer(self._csv_file)
+        #     # newline="" avoids blank lines on Windows
+        #     self._csv_file = open(self._csv_path, "w", newline="")
+        #     self._csv_writer = csv.writer(self._csv_file)
 
-            # Header: wall-clock + unix time + wrench components
-            self._csv_writer.writerow([
-                "datetime_local", "unix_time_s",
-                "Fx", "Fy", "Fz", "Tx", "Ty", "Tz"
-            ])
-            self._csv_file.flush()
+        #     # Header: wall-clock + unix time + wrench components
+        #     self._csv_writer.writerow([
+        #         "datetime_local", "unix_time_s",
+        #         "Fx", "Fy", "Fz", "Tx", "Ty", "Tz"
+        #     ])
+        #     self._csv_file.flush()
 
     def _smooth_gains(self):
             b = self.beta
@@ -398,8 +398,8 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         )
 
         # Detach the tensor from the computation graph and move it to the CPU
-        wrench_feedback_tensor = wrench_feedback.detach().cpu()
-        wrench_feedback_list: List[float] = wrench_feedback_tensor.tolist()
+        # wrench_feedback_tensor = wrench_feedback.detach().cpu()
+        # wrench_feedback_list: List[float] = wrench_feedback_tensor.tolist()
 
         # self._log_wrench_row(wrench_feedback_list)
 

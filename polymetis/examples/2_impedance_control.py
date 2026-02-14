@@ -19,6 +19,13 @@ if __name__ == "__main__":
     # Joint impedance control
     joint_positions = robot.get_joint_positions()
 
+    # Cartesian impedance control
+    print("Performing Cartesian impedance control...")
+    ee_pos, ee_quat = robot.get_ee_pose()
+
+    robot.start_cartesian_impedance()
+
+
     # print("Performing joint impedance control...")
     # robot.start_joint_impedance()
 
@@ -29,11 +36,6 @@ if __name__ == "__main__":
 
     # robot.terminate_current_policy()
 
-    # Cartesian impedance control
-    print("Performing Cartesian impedance control...")
-    ee_pos, ee_quat = robot.get_ee_pose()
-
-    robot.start_cartesian_impedance()
 
     # for i in range(40):
     #     ee_pos += torch.Tensor([-0.0025, 0.0, 0.0])

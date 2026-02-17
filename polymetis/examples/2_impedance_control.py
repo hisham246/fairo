@@ -28,6 +28,14 @@ if __name__ == "__main__":
     print("ee_link_name:", robot.metadata.ee_link_name)
     print("hz:", robot.metadata.hz)
 
+    urdf_text = robot.metadata.urdf_file
+    print("URDF length:", len(urdf_text))
+
+    with open("polymetis_urdf_from_server.urdf", "w") as f:
+        f.write(urdf_text)
+
+    print("Saved to polymetis_urdf_from_server.urdf")
+
 
     # print("Performing joint impedance control...")
     # robot.start_joint_impedance()

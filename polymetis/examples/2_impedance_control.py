@@ -4,6 +4,8 @@
 # LICENSE file in the root directory of this source tree.
 import torch
 import time
+import torchcontrol as toco
+
 
 from polymetis import RobotInterface
 
@@ -31,10 +33,18 @@ if __name__ == "__main__":
     urdf_text = robot.metadata.urdf_file
     print("URDF length:", len(urdf_text))
 
-    with open("polymetis_urdf_from_server.urdf", "w") as f:
-        f.write(urdf_text)
+    urdf_path = "franka_panda/panda_arm_tcp.urdf"
+    rm = toco.models.RobotModelPinocchio(urdf_path, "panda_hand_tcp")
 
-    print("Saved to polymetis_urdf_from_server.urdf")
+    # Depending on torchcontrol version, one of these exists:
+    print("ee_link_name:", "panda_hand_tcp")
+    print("model links:", rm.get_link_names() if hasattr(rm, "get_link_names") else "no get_link_names()")
+
+
+    # with open("polymetis_urdf_from_server.urdf", "w") as f:
+    #     f.write(urdf_text)
+
+    # print("Saved to polymetis_urdf_from_server.urdf")
 
 
     # print("Performing joint impedance control...")

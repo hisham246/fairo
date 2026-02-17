@@ -25,6 +25,9 @@ if __name__ == "__main__":
 
     robot.start_cartesian_impedance()
 
+    print("ee_link_name:", robot.metadata.ee_link_name)
+    print("hz:", robot.metadata.hz)
+
 
     # print("Performing joint impedance control...")
     # robot.start_joint_impedance()

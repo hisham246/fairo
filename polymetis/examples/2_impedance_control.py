@@ -33,7 +33,7 @@ if __name__ == "__main__":
     urdf_text = robot.metadata.urdf_file
     print("URDF length:", len(urdf_text))
 
-    urdf_path = "./data/franka_panda/panda_arm_tcp.urdf"
+    urdf_path = "data/franka_panda/panda_arm_tcp.urdf"
     rm = toco.models.RobotModelPinocchio(urdf_path, "panda_hand_tcp")
 
     # Depending on torchcontrol version, one of these exists:

@@ -133,6 +133,10 @@ message RobotState {
   float prev_controller_latency_ms = 10;                  //Latency of previous ControlUpdate call
   bool prev_command_successful = 11;                      //Whether previous command packet is successfully transmitted
   int32 error_code = 12;
+  // ADDED: libfranka RobotState::O_F_ext_hat_K
+  // Estimated external wrench acting on stiffness frame, expressed in base frame.
+  // Order: [Fx, Fy, Fz, Tx, Ty, Tz]  (N, N, N, Nm, Nm, Nm)
+  repeated float external_wrench_base = 13;
   // repeated float joint_positions_desired = 13;            //ADDED: Desired joint joint_positions
   // repeated float joint_velocities_desired = 14;           //ADDED: Desired joint velocities     
 }

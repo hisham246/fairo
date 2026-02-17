@@ -244,6 +244,16 @@ void FrankaTorqueControlClient::updateServerCommand(
                                              libfranka_robot_state.tau_J_d[i]);
     }
 
+    // ------------------ ADDED --------------------------
+    // Record estimated external wrench from libfranka
+    // O_F_ext_hat_K: [Fx, Fy, Fz, Tx, Ty, Tz] in base frame
+    robot_state_.clear_external_wrench_base();
+    for (int k = 0; k < 6; k++) {
+      robot_state_.add_external_wrench_base(
+          static_cast<float>(libfranka_robot_state.O_F_ext_hat_K[k]));
+    }
+    // ---------------------------------------------------
+
     robot_state_.set_prev_command_successful(prev_command_successful);
 
     // Error code: can only set to 0 if no errors and 1 if any errors exist for

@@ -30,15 +30,15 @@ if __name__ == "__main__":
     print("ee_link_name:", robot.metadata.ee_link_name)
     print("hz:", robot.metadata.hz)
 
-    urdf_text = robot.metadata.urdf_file
-    print("URDF length:", len(urdf_text))
+    # urdf_text = robot.metadata.urdf_file
+    # print("URDF length:", len(urdf_text))
 
-    urdf_path = "polymetis/polymetis/data/franka_panda/panda_arm_tcp.urdf"
-    rm = toco.models.RobotModelPinocchio(urdf_path, "panda_hand_tcp")
+    # urdf_path = "polymetis/polymetis/data/franka_panda/panda_arm_tcp.urdf"
+    # rm = toco.models.RobotModelPinocchio(urdf_path, "panda_hand_tcp")
 
-    # Depending on torchcontrol version, one of these exists:
-    print("ee_link_name:", "panda_hand_tcp")
-    print("model links:", rm.get_link_names() if hasattr(rm, "get_link_names") else "no get_link_names()")
+    # # Depending on torchcontrol version, one of these exists:
+    # print("ee_link_name:", "panda_hand_tcp")
+    # print("model links:", rm.get_link_names() if hasattr(rm, "get_link_names") else "no get_link_names()")
 
 
     # with open("polymetis_urdf_from_server.urdf", "w") as f:

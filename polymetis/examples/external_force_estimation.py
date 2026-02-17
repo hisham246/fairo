@@ -23,7 +23,7 @@ def main():
             f"tau_ext_size={len(tau_ext)} tau_ext(first3)={tau_ext[:3]}"
         )
 
-        time.sleep(0.2)  # 5 Hz
+        time.sleep(0.1)  # 10 Hz
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 import pinocchio as pin
 from pinocchio.robot_wrapper import RobotWrapper
 
-urdf_path = "/home/robohub/polymetis/polymetis/data/franka_panda/panda_arm_tcp.urdf"
+urdf_path = "polymetis/polymetis/data/franka_panda/panda_arm_tcp.urdf"
 ee_name = "panda_hand_tcp"
 
 robot_pin = RobotWrapper.BuildFromURDF(urdf_path, package_dirs=[])

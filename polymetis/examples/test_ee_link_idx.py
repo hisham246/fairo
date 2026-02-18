@@ -1,21 +1,22 @@
-import pinocchio as pin
-from pinocchio.robot_wrapper import RobotWrapper
+import torch
+import torchcontrol as toco
+from polymetis import RobotInterface
 
-urdf_path = "polymetis/polymetis/data/franka_panda/panda_arm_tcp.urdf"
-ee_name = "panda_hand_tcp"
+robot = RobotInterface(ip_address="localhost")
+q = robot.get_joint_positions()
 
-robot_pin = RobotWrapper.BuildFromURDF(urdf_path, package_dirs=[])
-model = robot_pin.model
+# Use the exact URDF the server is serving (guaranteed to match what Polymetis uses)
+import tempfile
+urdf_text = robot.metadata.urdf_file
+with tempfile.NamedTemporaryFile("w+", suffix=".urdf") as f:
+    f.write(urdf_text)
+    f.flush()
 
-print("nq:", model.nq, "nv:", model.nv)
-print("num joints:", model.njoints)
+    rm_link8 = toco.models.RobotModelPinocchio(f.name, "panda_link8")
+    rm_tcp   = toco.models.RobotModelPinocchio(f.name, "panda_hand_tcp")
 
-# Pinocchio stores joints by name; links are usually "frames".
-# For a URDF link, it typically appears as a frame:
-frame_id = model.getFrameId(ee_name)
-print("frame_id:", frame_id)
+    p8, q8 = rm_link8.forward_kinematics(q)
+    pt, qt = rm_tcp.forward_kinematics(q)
 
-# Also useful: list a few last frames to sanity-check
-for i in range(model.nframes-10, model.nframes):
-    f = model.frames[i]
-    print(i, f.name, "parent joint:", f.parent)
+    dp = (pt - p8)
+    print("delta (tcp - link8):", dp.tolist(), "norm:", float(torch.linalg.norm(dp)))

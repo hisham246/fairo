@@ -1,35 +1,21 @@
-import torch
-from polymetis import RobotInterface
+import pinocchio as pin
+from pinocchio.robot_wrapper import RobotWrapper
 
-robot = RobotInterface(ip_address="localhost")
+urdf_path = "/home/robohub/polymetis/polymetis/data/franka_panda/panda_arm_tcp.urdf"
+ee_name = "panda_hand_tcp"
 
-print("server ee_link_name:", robot.metadata.ee_link_name)
+robot_pin = RobotWrapper.BuildFromURDF(urdf_path, package_dirs=[])
+model = robot_pin.model
 
-q = robot.get_joint_positions()
+print("nq:", model.nq, "nv:", model.nv)
+print("num joints:", model.njoints)
 
-# FK through robot_model (this uses the EE link configured in RobotModelPinocchio)
-pos, quat = robot.robot_model.forward_kinematics(q)
-J = robot.robot_model.compute_jacobian(q)
+# Pinocchio stores joints by name; links are usually "frames".
+# For a URDF link, it typically appears as a frame:
+frame_id = model.getFrameId(ee_name)
+print("frame_id:", frame_id)
 
-print("FK pos:", pos.tolist())
-print("FK quat:", quat.tolist())
-print("Jacobian shape:", tuple(J.shape))   # should be (6, 7)
-print("Jacobian finite:", torch.isfinite(J).all().item())
-
-
-rm = robot.robot_model
-
-for attr in ["get_link_names", "get_frame_names", "link_names", "frame_names"]:
-    print(attr, "exists:", hasattr(rm, attr))
-
-if hasattr(rm, "get_link_names"):
-    names = rm.get_link_names()
-    print("num links:", len(names))
-    print("ee idx:", names.index(robot.metadata.ee_link_name))
-elif hasattr(rm, "get_frame_names"):
-    names = rm.get_frame_names()
-    print("num frames:", len(names))
-    print("ee idx:", names.index(robot.metadata.ee_link_name))
-else:
-    print("This build doesn't expose link/frame names; use Method 3 below.")
-
+# Also useful: list a few last frames to sanity-check
+for i in range(model.nframes-10, model.nframes):
+    f = model.frames[i]
+    print(i, f.name, "parent joint:", f.parent)

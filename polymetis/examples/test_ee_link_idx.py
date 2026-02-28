@@ -20,7 +20,7 @@ def test_polymetis_kinematics():
     print("\n--- 2. Inverse Kinematics (IK) Test ---")
     # Let's create a target exactly 5 cm (0.05m) straight UP (+Z) from the current TCP
     target_pos = ee_pos.clone()
-    target_pos[2] += 0.05 
+    target_pos[2] += 0.5
     target_quat = ee_quat.clone() # Keep the exact same orientation
     
     print(f"Target TCP Position (5cm up): {target_pos}")

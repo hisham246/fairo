@@ -62,8 +62,15 @@ class RobotModelPinocchio(torch.nn.Module):
         # Set ee_link_idx
         if self.ee_link_name is not None:
             self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
+            # --- ADD THIS PRINT STATEMENT HERE ---
+            print(f"\n[DEBUG] Polymetis configured TCP!")
+            print(f"[DEBUG] ee_link_name: {self.ee_link_name}")
+            print(f"[DEBUG] Pinocchio internal index: {self.ee_link_idx}\n")
+            # -------------------------------------
         else:
             self.ee_link_idx = None
+
+
 
     def _get_link_idx_or_use_ee(self, link_name: str) -> int:
         """
